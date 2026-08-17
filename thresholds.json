@@ -1,0 +1,16 @@
+{
+  "version": "Feya 1.0",
+  "role": "crowding_gate_only",
+  "method": "adaptive_q80_rolling_180d",
+  "window_days": 180,
+  "quantile": 0.8,
+  "updated_at_utc": "2026-08-15T23:59:00Z",
+  "history_through_utc": "2026-08-15T23:55:00Z",
+  "status": "validated_seed",
+  "symbols": {
+    "HYPEUSDT": {"threshold": 0.7830287563},
+    "PENDLEUSDT": {"threshold": 1.4511754425294032},
+    "ONDOUSDT": {"threshold": 0.7815167713847584},
+    "WIFUSDT": {"threshold": 0.8428355913575445}
+  }
+}

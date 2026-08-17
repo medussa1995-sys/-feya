@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1014">
+<title>Фея 1.0 🧚</title>
+<style>
+:root{--bg:#0d1014;--card:#151a1f;--line:#303741;--text:#f5f7fa;--muted:#9da6b5;--g:#35d07f;--r:#ff5d70;--y:#ffc94d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.wrap{max-width:760px;margin:auto;padding:24px 16px 56px}h1{font-size:36px;margin:8px 0 4px}.sub,.small{color:var(--muted);line-height:1.55}.sub{margin-bottom:18px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.tab{padding:12px 5px;border:1px solid var(--line);border-radius:14px;background:#11161b;color:var(--text);font-weight:800}.tab.active{border-color:var(--y);box-shadow:0 0 0 1px var(--y) inset}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;margin:14px 0}.result{font-size:27px;font-weight:850;margin-bottom:9px}.green{color:var(--g)}.red{color:var(--r)}.yellow{color:var(--y)}
+.btn{width:100%;padding:18px;border:0;border-radius:18px;background:var(--y);font-size:18px;font-weight:850;margin-top:16px}.btn:disabled{opacity:.6}.row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}.val{text-align:right;font-weight:750}.note{padding:11px 13px;border:1px solid var(--line);background:#10151a;border-radius:14px}.badge{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:4px 8px;font-size:12px}
+</style>
+</head>
+<body><div class="wrap">
+<h1>🧚 Фея 1.0</h1>
+<div class="sub">Предварительный crowding-фильтр для Алмаза · adaptive Q80 rolling 180d</div>
+<div class="tabs">
+<button class="tab active" data-s="HYPEUSDT">HYPE</button>
+<button class="tab" data-s="PENDLEUSDT">PENDLE</button>
+<button class="tab" data-s="ONDOUSDT">ONDO</button>
+<button class="tab" data-s="WIFUSDT">WIF</button>
+</div>
+
+<div class="card">
+<div id="result" class="result yellow">Готова к проверке</div>
+<div id="explain" class="small">Выбери монету и нажми кнопку.</div>
+<button id="check" class="btn">Проверить Фею</button>
+</div>
+
+<div class="card">
+<div class="row"><span>Монета</span><span id="coin" class="val">HYPE</span></div>
+<div class="row"><span>OI value / 24h turnover</span><span id="ratio" class="val">—</span></div>
+<div class="row"><span>Adaptive Q80 (180d)</span><span id="threshold" class="val">—</span></div>
+<div class="row"><span>Open Interest value</span><span id="oi" class="val">—</span></div>
+<div class="row"><span>24h quote turnover</span><span id="turnover" class="val">—</span></div>
+<div class="row"><span>Порог пересчитан</span><span id="updated" class="val">—</span></div>
+<div class="row"><span>История до</span><span id="history" class="val">—</span></div>
+</div>
+
+<div class="card small">
+<div class="note"><b>Рабочая архитектура</b><br><br>
+🟢 <b>Фея ON</b> → включаем Veles/Алмаз и он ищет вход по своим правилам.<br><br>
+🔴 <b>Фея OFF</b> → торговый бот не должен искать новые сделки.<br><br>
+Фея здесь отвечает <b>только за crowding Q80(180d)</b>. NO-OVERLAP относится к логике входа Алмаза/Veles и намеренно не встроен в эту страницу.
+</div>
+</div>
+</div>
+<script>
+const API='https://fapi.binance.com';
+let SYMBOL='HYPEUSDT',cfg=null;
+const $=id=>document.getElementById(id);
+
+function money(x){if(!Number.isFinite(x))return'—';let a=Math.abs(x);if(a>=1e9)return'$'+(x/1e9).toFixed(2)+'B';if(a>=1e6)return'$'+(x/1e6).toFixed(2)+'M';if(a>=1e3)return'$'+(x/1e3).toFixed(1)+'K';return'$'+x.toFixed(2)}
+async function j(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
+async function loadCfg(){cfg=await j('./thresholds.json?ts='+Date.now());paintCfg()}
+function paintCfg(){if(!cfg)return;const c=cfg.symbols[SYMBOL];$('threshold').textContent=Number(c.threshold).toFixed(6);$('updated').innerHTML=(cfg.updated_at_utc||'—')+'<br><span class="badge">'+(cfg.status||'')+'</span>';$('history').textContent=c.history_through_utc||cfg.history_through_utc||'seed'}
+function setSym(s){SYMBOL=s;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.s===s));$('coin').textContent=s.replace('USDT','');['ratio','oi','turnover'].forEach(x=>$(x).textContent='—');paintCfg();$('result').textContent='Готова к проверке';$('result').className='result yellow';$('explain').textContent='Проверим '+s.replace('USDT','')+'.'}
+
+async function currentOiValue(symbol){
+  // Prefer Binance's own sumOpenInterestValue so live numerator matches the historical metric.
+  try{
+    const a=await j(`${API}/futures/data/openInterestHist?symbol=${symbol}&period=5m&limit=1`);
+    if(Array.isArray(a)&&a.length){const v=Number(a[a.length-1].sumOpenInterestValue);if(Number.isFinite(v)&&v>0)return v;}
+  }catch(_){/* fallback below */}
+  const [oi,mark]=await Promise.all([j(`${API}/fapi/v1/openInterest?symbol=${symbol}`),j(`${API}/fapi/v1/premiumIndex?symbol=${symbol}`)]);
+  return Number(oi.openInterest)*Number(mark.markPrice);
+}
+
+async function check(){
+  const b=$('check');b.disabled=true;b.textContent='Проверяю…';
+  try{
+    if(!cfg)await loadCfg();
+    const [oiValue,ticker]=await Promise.all([currentOiValue(SYMBOL),j(`${API}/fapi/v1/ticker/24hr?symbol=${SYMBOL}`)]);
+    const turnover=Number(ticker.quoteVolume);
+    if(!Number.isFinite(oiValue)||!Number.isFinite(turnover)||turnover<=0)throw Error('Некорректные данные Binance');
+    const ratio=oiValue/turnover;
+    const thr=Number(cfg.symbols[SYMBOL].threshold);
+    $('ratio').textContent=ratio.toFixed(4);$('oi').textContent=money(oiValue);$('turnover').textContent=money(turnover);
+    if(ratio<=thr){$('result').textContent='🟢 ФЕЯ ON — Алмаз можно включать';$('result').className='result green';$('explain').textContent=`${ratio.toFixed(4)} ≤ Q80 ${thr.toFixed(4)}.`}
+    else{$('result').textContent='🔴 ФЕЯ OFF — Алмаз выключен';$('result').className='result red';$('explain').textContent=`${ratio.toFixed(4)} > Q80 ${thr.toFixed(4)}.`}
+  }catch(e){$('result').textContent='⚠️ Проверка не удалась';$('result').className='result yellow';$('explain').textContent=e.message}
+  finally{b.disabled=false;b.textContent='Проверить Фею'}
+}
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setSym(b.dataset.s));
+$('check').onclick=check;
+loadCfg().catch(()=>{$('updated').textContent='Ошибка thresholds.json'});
+setSym(SYMBOL);
+</script>
+</body></html>
