@@ -4,29 +4,29 @@
   "method": "adaptive_q80_rolling_180d",
   "window_days": 180,
   "quantile": 0.8,
-  "updated_at_utc": "2026-08-20T05:06:37.683513Z",
-  "history_through_utc": "2026-08-18T23:55:00Z",
+  "updated_at_utc": "2026-08-21T05:07:02.811146Z",
+  "history_through_utc": "2026-08-19T23:55:00Z",
   "status": "ok",
   "symbols": {
     "HYPEUSDT": {
-      "threshold": 0.8002793998704403,
+      "threshold": 0.8009440120956847,
       "history_points": 51834,
-      "history_through_utc": "2026-08-18T23:55:00Z"
+      "history_through_utc": "2026-08-19T23:55:00Z"
     },
     "PENDLEUSDT": {
       "threshold": 1.4788446881157713,
       "history_points": 51835,
-      "history_through_utc": "2026-08-18T23:55:00Z"
+      "history_through_utc": "2026-08-19T23:55:00Z"
     },
     "ONDOUSDT": {
-      "threshold": 0.7846700018733225,
+      "threshold": 0.7841984834144062,
       "history_points": 51832,
-      "history_through_utc": "2026-08-18T23:55:00Z"
+      "history_through_utc": "2026-08-19T23:55:00Z"
     },
     "WIFUSDT": {
-      "threshold": 0.8698083373597286,
+      "threshold": 0.8767208667602772,
       "history_points": 51836,
-      "history_through_utc": "2026-08-18T23:55:00Z"
+      "history_through_utc": "2026-08-19T23:55:00Z"
     }
   }
 }
