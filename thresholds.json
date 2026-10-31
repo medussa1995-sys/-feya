@@ -4,7 +4,7 @@
   "method": "adaptive_q80_rolling_180d",
   "window_days": 180,
   "quantile": 0.8,
-  "updated_at_utc": "2026-10-30T10:01:09.065445Z",
+  "updated_at_utc": "2026-10-31T09:39:06.250184Z",
   "history_through_utc": "2026-10-27T23:55:00Z",
   "status": "ok",
   "symbols": {
